@@ -1,4 +1,4 @@
-namespace AspNetCoreAuthServer.API
+namespace MiniApp2.API
 {
     public class WeatherForecast
     {
