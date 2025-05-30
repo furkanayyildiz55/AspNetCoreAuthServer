@@ -5,6 +5,7 @@ using UdemyAuthServer.Core.Services;
 namespace AspNetCoreAuthServer.API.Controllers
 {
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class AuthController : CustomBaseController
     {
         private readonly IAuthenticationService _authenticationService;
@@ -15,7 +16,7 @@ namespace AspNetCoreAuthServer.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateToken(LoginDto loginDto)
+        public async Task<IActionResult> CreateToken( LoginDto loginDto)
         {
             var result = await _authenticationService.CreateTokenAsync(loginDto);
             return ActionResultInstance(result);

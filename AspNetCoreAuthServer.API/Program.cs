@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SharedLibrary.Configurations;
+using SharedLibrary.Extensions;
 using SharedLibrary.Services;
 using UdemyAuthServer.Core.Configuration;
 using UdemyAuthServer.Core.Models;
@@ -51,20 +52,23 @@ builder.Services.AddIdentity<UserApp, IdentityRole>(Opt =>
 builder.Services.Configure<CustomTokenOption>(builder.Configuration.GetSection("TokenOption"));
 builder.Services.Configure<List<Client>>(builder.Configuration.GetSection("Clients"));
 
-//CONFÝGURATION INSTANCE
-var tokenOption = builder.Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
+
 
 // TOKEN AUTH
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts =>
 {
+    //CONFÝGURATION INSTANCE
+    var tokenOption = builder.Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
+
     opts.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
     {
         ValidIssuer = tokenOption.Issuer,
-        ValidAudience = tokenOption.Audience[0],
+        ValidAudiences = tokenOption.Audience,
         IssuerSigningKey = SignService.GetSymmetricSecurityKey(tokenOption.SecurityKey),
 
         ValidateIssuerSigningKey = true,
@@ -73,7 +77,28 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+
+    opts.Events = new JwtBearerEvents
+    {
+  
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("Authentication failed:");
+            Console.WriteLine(context.Exception.ToString());
+            Console.WriteLine();
+            Console.WriteLine(context.HttpContext.Request.Headers["Authorization"].ToString());
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("Token validated successfully");
+            return Task.CompletedTask;
+        }
+    };
 });
+
+//CUSTOM VALIDATION RESPONSE
+builder.Services.UseCustomValidationResponse();
 
 var app = builder.Build();
 
@@ -86,9 +111,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
-
-
 
 app.MapControllers();
 
