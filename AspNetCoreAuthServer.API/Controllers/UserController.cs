@@ -20,6 +20,11 @@ namespace AspNetCoreAuthServer.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(CreateUserDto createUserDto)
         {
+            if (ModelState.IsValid)
+            {
+
+            }
+
             return ActionResultInstance(await _userService.CreateUserAsync(createUserDto));
         }
 

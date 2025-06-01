@@ -1,11 +1,13 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using SharedLibrary.Configurations;
 using SharedLibrary.Extensions;
 using SharedLibrary.Services;
+using UdemyAuthServer.API.Validations;
 using UdemyAuthServer.Core.Configuration;
+using UdemyAuthServer.Core.DTOs;
 using UdemyAuthServer.Core.Models;
 using UdemyAuthServer.Core.Repositories;
 using UdemyAuthServer.Core.Services;
@@ -13,10 +15,12 @@ using UdemyAuthServer.Core.UnitOfWork;
 using UdemyAuthServer.Data;
 using UdemyAuthServer.Data.Repositories;
 using UdemyAuthServer.Service.Services;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -30,6 +34,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped(typeof(IServiceGeneric<,>), typeof(ServiceGeneric<,>));
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+
+//Fluent Validaton DI 
+//builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserDtoValidator>();
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.UseCustomValidationResponse();
+
 
 //DB
 builder.Services.AddDbContext<AppDbContext>(option =>
@@ -51,8 +61,6 @@ builder.Services.AddIdentity<UserApp, IdentityRole>(Opt =>
 //CONFÝGURATION
 builder.Services.Configure<CustomTokenOption>(builder.Configuration.GetSection("TokenOption"));
 builder.Services.Configure<List<Client>>(builder.Configuration.GetSection("Clients"));
-
-
 
 // TOKEN AUTH
 builder.Services.AddAuthentication(options =>
@@ -109,6 +117,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//CUSTOM EXCEPTION HANDLER
+app.UseCustomException();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

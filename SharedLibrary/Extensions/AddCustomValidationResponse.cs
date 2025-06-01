@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace SharedLibrary.Extensions
 {
+    //Burası herhangi bir modelin validasyon hatalarını kendi error responsumuz ile kullanıcıya gönderilmesini sağlar.
     public static class CustomValidationResponse
     {
         public static void UseCustomValidationResponse(this IServiceCollection services)
